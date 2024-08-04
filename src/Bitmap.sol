@@ -30,6 +30,13 @@ contract BitMap {
         admin[msg.sender] = true;
     }
 
+    function isEligiable(uint256 index) public view returns (bool) {
+        uint256 workdIndex = index / 256;
+        uint256 bitIndex = index % 256;
+        uint256 mask = (1 << bitIndex);
+        return (bitmap[workdIndex] & mask) == mask;
+    }
+
     //Try to implement dynaminc amount of airdrop acording to the conditions or achivement
     //function for eligiable
     //fiunctionn to calim
