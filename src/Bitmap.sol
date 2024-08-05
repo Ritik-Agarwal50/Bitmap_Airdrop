@@ -4,11 +4,12 @@ pragma solidity ^0.8.9;
 import "./IERC20.sol";
 
 contract BitMap {
-    mapping(uint256 => uint256) public bitmap;
     address public token;
-    address public amount;
     address public owner;
+    mapping(uint256 => uint256) public bitmap;
     mapping(address => bool) private admin;
+    mapping(uint256 => uint256) public tokenAmounts;
+    mapping(address => bool) public claimed;
 
     event AirDropClaimed(address indexed claiment, uint256 indexed index);
     event BitMapUpdated(uint256 indexed wordIndex, uint256 bits);
@@ -43,17 +44,26 @@ contract BitMap {
     }
 
     // function updateBitmap
-    function batchUpdateBitmap(uint256[] calldata indexes) public _onlyAdmin {
+    function batchUpdateBitmap(uint256[] calldata indexes) external {
+        uint256 totalAmount = 0;
         for (uint256 i = 0; i < indexes.length; i++) {
-            uint256 wordIndex = indexes[i] / 256;
-            uint256 bitIndex = indexes[i] % 256;
-            uint256 mask = (1 << bitIndex);
-            bitmap[wordIndex] = bitmap[wordIndex] | mask;
+            require(!isEligiable(indexes[i]), "Already Claimed");
+            require(!claimed[msg.sender], "Already Claimed");
         }
     }
 
+    //functionn to calim
+    function claim(uint256 index) external {
+        require(isEligiable(index), "Not Eligiable");
+        require(!claimed[msg.sender], "Already Claimed");
+        uint256 amount = tokenAmounts[index];
+        require(amount > 0, "Amount is 0");
+        claimed[msg.sender] = true;
+        require(IERC20(token).transfer(msg.sender, amount), "Transfer Failed");
+        emit AirDropClaimed(msg.sender, index);
+    }
+
     //Try to implement dynaminc amount of airdrop acording to the conditions or achivement
-    //fiunctionn to calim
     //function to setBitMap
     // function add admin
     // function remove admin
