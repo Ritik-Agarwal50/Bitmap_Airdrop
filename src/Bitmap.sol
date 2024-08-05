@@ -30,6 +30,7 @@ contract BitMap {
         admin[msg.sender] = true;
     }
 
+    //function for eligiable
     function isEligiable(uint256 index) public view returns (bool) {
         uint256 workdIndex = index / 256;
         uint256 bitIndex = index % 256;
@@ -37,12 +38,24 @@ contract BitMap {
         return (bitmap[workdIndex] & mask) == mask;
     }
 
+    function Onlyadmin() private view returns (bool) {
+        return admin[msg.sender];
+    }
+
+    // function updateBitmap
+    function batchUpdateBitmap(uint256[] calldata indexes) public _onlyAdmin {
+        for (uint256 i = 0; i < indexes.length; i++) {
+            uint256 wordIndex = indexes[i] / 256;
+            uint256 bitIndex = indexes[i] % 256;
+            uint256 mask = (1 << bitIndex);
+            bitmap[wordIndex] = bitmap[wordIndex] | mask;
+        }
+    }
+
     //Try to implement dynaminc amount of airdrop acording to the conditions or achivement
-    //function for eligiable
     //fiunctionn to calim
     //function to setBitMap
     // function add admin
     // function remove admin
     // function batchclaim
-    // function updateBitmap
 }
