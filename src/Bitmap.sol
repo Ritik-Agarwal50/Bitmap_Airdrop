@@ -44,11 +44,13 @@ contract BitMap {
     }
 
     // function updateBitmap
-    function batchUpdateBitmap(uint256[] calldata indexes) external {
-        uint256 totalAmount = 0;
+    function batchUpdateBitmap(uint256[] calldata indexes) public _onlyAdmin {
         for (uint256 i = 0; i < indexes.length; i++) {
-            require(!isEligiable(indexes[i]), "Already Claimed");
-            require(!claimed[msg.sender], "Already Claimed");
+            uint256 wordIndex = indexes[i] / 256;
+            uint256 bitIndex = indexes[i] % 256;
+            uint256 mask = (1 << bitIndex);
+            bitmap[wordIndex] = bitmap[wordIndex] | mask;
+            emit BitMapUpdated(wordIndex, bitmap[wordIndex]);
         }
     }
 
@@ -65,6 +67,21 @@ contract BitMap {
 
     //Try to implement dynaminc amount of airdrop acording to the conditions or achivement
     //function to setBitMap
+    function setBitMapAndAmounts(
+        uint256[] calldata indexes,
+        uint256[] calldata amounts
+    ) external _onlyAdmin {
+        require(indexes.length == amounts.length, "Invalid Input");
+        for (uint256 i = 0; i < indexes.length; i++) {
+            uint256 wordIndex = indexes[i] / 256;
+            uint256 bitIndex = indexes[i] % 256;
+            uint256 mask = (1 << bitIndex);
+            bitmap[wordIndex] = bitmap[wordIndex] | mask;
+            tokenAmounts[indexes[i]] = amounts[i];
+            emit BitMapUpdated(wordIndex, bitmap[wordIndex]);
+            emit TokenAmountUpdated(indexes[i], amounts[i]);
+        }
+    }
     // function add admin
     // function remove admin
     // function batchclaim
