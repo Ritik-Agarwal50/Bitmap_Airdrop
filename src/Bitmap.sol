@@ -14,6 +14,8 @@ contract BitMap {
     event AirDropClaimed(address indexed claiment, uint256 indexed index);
     event BitMapUpdated(uint256 indexed wordIndex, uint256 bits);
     event TokenAmountUpdated(uint256 indexed index, uint256 amount);
+    event AdminAdded(address indexed admin);
+    event AdminRemoved(address indexed admin);
 
     modifier _onlyOwner() {
         require(msg.sender == owner, "Not Owner");
@@ -82,7 +84,35 @@ contract BitMap {
             emit TokenAmountUpdated(indexes[i], amounts[i]);
         }
     }
+
     // function add admin
+    function addAdmin(address _admin) external _onlyOwner {
+        admin[_admin] = true;
+        emit AdminAdded(_admin);
+    }
+
     // function remove admin
+    function removeAdmin(address _admin) external _onlyOwner {
+        admin[_admin] = false;
+        emit AdminRemoved(_admin);
+    }
+
     // function batchclaim
+    function batchClaim(uint256[] calldata indexes) external {
+        uint256 totalAmount = 0;
+        for (uint256 i = 0; i < indexes.length; i++) {
+            require(isEligiable(indexes[i]), "Not Eligiable");
+            require(!claimed[msg.sender], "Already Claimed");
+            uint256 amount = tokenAmounts[indexes[i]];
+            require(amount > 0, "Amount is 0");
+            totalAmount += amount;
+            claimed[msg.sender] = true;
+        }
+        require(totalAmount > 0, "No token to claim");
+        require(
+            IERC20(token).transfer(msg.sender, totalAmount),
+            "Transfer Failed"
+        );
+        emit AirDropClaimed(msg.sender, indexes[indexes.length - 1]);
+    }
 }
